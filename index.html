@@ -5,13 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BIO-SYNC — نظام الذكاء الاصطناعي لمراقبة النباتات</title>
   
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- OrbitControls -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
@@ -55,7 +51,6 @@
       padding: 20px;
     }
     
-    /* Header */
     header {
       display: flex;
       justify-content: space-between;
@@ -136,7 +131,6 @@
       font-size: 14px;
     }
     
-    /* Layout */
     .layout {
       display: grid;
       grid-template-columns: 1fr 2fr;
@@ -149,7 +143,6 @@
       }
     }
     
-    /* Cards */
     .card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -183,7 +176,6 @@
       color: var(--accent);
     }
     
-    /* Plant Card */
     .plant-card {
       display: grid;
       grid-template-columns: 200px 1fr;
@@ -339,7 +331,6 @@
       color: var(--danger);
     }
     
-    /* Charts */
     .charts-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -361,7 +352,6 @@
       height: 240px;
     }
     
-    /* Alerts */
     .alert {
       padding: 14px;
       border-radius: 10px;
@@ -421,7 +411,6 @@
       font-size: 0.8rem;
     }
     
-    /* Timeline */
     .timeline {
       max-height: 300px;
       overflow-y: auto;
@@ -453,7 +442,6 @@
       flex: 1;
     }
     
-    /* Predictive Model */
     .prediction-card {
       display: grid;
       grid-template-columns: 240px 1fr;
@@ -520,7 +508,6 @@
       background: var(--danger);
     }
     
-    /* Recommendations */
     .recommendation {
       padding: 16px;
       border-radius: 10px;
@@ -547,7 +534,6 @@
       line-height: 1.5;
     }
     
-    /* Footer */
     footer {
       margin-top: 30px;
       text-align: center;
@@ -557,7 +543,6 @@
       border-top: 1px solid var(--border);
     }
     
-    /* Animations */
     @keyframes pulse {
       0% { opacity: 0.7; }
       50% { opacity: 1; }
@@ -577,7 +562,7 @@
       animation: slideIn 0.5s ease;
     }
     
-    /* Scrollbar */
+    
     ::-webkit-scrollbar {
       width: 6px;
     }
@@ -596,7 +581,6 @@
       background: rgba(255, 255, 255, 0.3);
     }
     
-    /* Loading State */
     .loading {
       display: flex;
       align-items: center;
@@ -643,9 +627,7 @@
     </header>
     
     <main class="layout">
-      <!-- الجانب الأيسر -->
       <section class="left-panel">
-        <!-- بطاقة النبات -->
         <div class="card plant-card">
           <div class="plant-visual">
             <canvas id="plant3d"></canvas>
@@ -731,7 +713,6 @@
           </div>
         </div>
         
-        <!-- لوحة التحكم -->
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">
@@ -777,7 +758,6 @@
           </div>
         </div>
         
-        <!-- سجل الأحداث -->
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">
@@ -789,14 +769,12 @@
           </div>
           
           <div class="timeline" id="logList">
-            <!-- سيتم ملؤه ديناميكيًا -->
+           
           </div>
         </div>
       </section>
       
-      <!-- الجانب الأيمن -->
       <section class="right-panel">
-        <!-- الرسوم البيانية -->
         <div class="card chart-card">
           <div class="card-header">
             <h3 class="card-title">
@@ -823,7 +801,6 @@
           </div>
         </div>
         
-        <!-- التنبؤ الاستباقي -->
         <div class="card prediction-card">
           <div class="risk-indicator">
             <div class="stat-label">مستوى الخطر المتوقع</div>
@@ -855,7 +832,7 @@
           </div>
         </div>
         
-        <!-- التنبيهات والتوصيات -->
+        
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">
@@ -867,7 +844,7 @@
           </div>
           
           <div id="alertsArea">
-            <!-- سيتم ملؤه ديناميكيًا -->
+            
           </div>
           
           <div class="recommendation">
@@ -892,7 +869,7 @@
   </div>
 
   <script>
-    // حالة التطبيق
+    
     const state = {
       timeIndex: 0,
       health: 82,
@@ -908,21 +885,17 @@
       simulationInterval: null
     };
 
-    // تهيئة Three.js للنموذج ثلاثي الأبعاد
     function init3DPlant() {
       const canvas = document.getElementById('plant3d');
       const loadingElement = document.getElementById('plantLoading');
       
       try {
-        // إنشاء المشهد
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x08212a);
         
-        // إنشاء الكاميرا
         const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
         camera.position.set(0, 1.5, 3);
         
-        // إنشاء العارض
         const renderer = new THREE.WebGLRenderer({ 
           canvas: canvas,
           antialias: true,
@@ -931,7 +904,6 @@
         renderer.setSize(canvas.clientWidth, canvas.clientHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
-        // إضافة الإضاءة
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
         
@@ -939,29 +911,24 @@
         directionalLight.position.set(5, 10, 7);
         scene.add(directionalLight);
         
-        // إنشاء النبتة
         const plantGroup = new THREE.Group();
         scene.add(plantGroup);
         
-        // التربة
         const soilGeometry = new THREE.CylinderGeometry(0.8, 1, 0.3, 32);
         const soilMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
         const soil = new THREE.Mesh(soilGeometry, soilMaterial);
         soil.position.y = -0.15;
         plantGroup.add(soil);
         
-        // الساق
         const stemGeometry = new THREE.CylinderGeometry(0.05, 0.07, 1.2, 8);
         const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x2E8B57 });
         const stem = new THREE.Mesh(stemGeometry, stemMaterial);
         stem.position.y = 0.5;
         plantGroup.add(stem);
         
-        // الأوراق
         const leafGeometry = new THREE.SphereGeometry(0.3, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
         const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x32CD32 });
         
-        // إنشاء عدة أوراق
         for (let i = 0; i < 6; i++) {
           const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
           const angle = (i / 6) * Math.PI * 2;
@@ -981,28 +948,23 @@
           plantGroup.add(leaf);
         }
         
-        // الزهرة
         const flowerGeometry = new THREE.SphereGeometry(0.15, 16, 16);
         const flowerMaterial = new THREE.MeshLambertMaterial({ color: 0xFF69B4 });
         const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
         flower.position.y = 1.2;
         plantGroup.add(flower);
         
-        // إضافة OrbitControls للتحكم بالكاميرا
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.minDistance = 1.5;
         controls.maxDistance = 5;
         
-        // إخفاء مؤشر التحميل
         loadingElement.style.display = 'none';
         
-        // دورة التصيير
         function animate() {
           requestAnimationFrame(animate);
           
-          // حركة بسيطة للنبات (تنفس)
           plantGroup.rotation.y += 0.002;
           stem.scale.y = 1 + Math.sin(Date.now() * 0.002) * 0.05;
           
@@ -1012,7 +974,6 @@
         
         animate();
         
-        // التعامل مع تغيير حجم النافذة
         window.addEventListener('resize', function() {
           camera.aspect = canvas.clientWidth / canvas.clientHeight;
           camera.updateProjectionMatrix();
@@ -1025,9 +986,9 @@
       }
     }
 
-    // تهيئة الرسوم البيانية
+    
     function initCharts() {
-      // مخطط الصحة (مقياس دائري)
+      
       const gaugeCtx = document.getElementById('gauge').getContext('2d');
       const gaugeChart = new Chart(gaugeCtx, {
         type: 'doughnut',
@@ -1053,7 +1014,7 @@
         }
       });
       
-      // مخطط درجة الحرارة والرطوبة
+      
       const tempHumCtx = document.getElementById('tempHumChart').getContext('2d');
       const tempHumChart = new Chart(tempHumCtx, {
         type: 'line',
@@ -1110,7 +1071,7 @@
         }
       });
       
-      // مخطط المغذيات
+      
       const nutrCtx = document.getElementById('nutrChart').getContext('2d');
       const nutrChart = new Chart(nutrCtx, {
         type: 'bar',
@@ -1139,7 +1100,7 @@
         }
       });
       
-      // حفظ المراجع للتحديث لاحقاً
+      
       window.charts = {
         gauge: gaugeChart,
         tempHum: tempHumChart,
@@ -1147,16 +1108,16 @@
       };
     }
     
-    // وظيفة مساعدة لتوليد بيانات عشوائية
+    
     function generateData(count, base, variance) {
       return Array.from({length: count}, () => {
         return base + (Math.random() - 0.5) * variance * 2;
       });
     }
     
-    // تحديث واجهة المستخدم
+    
     function updateUI() {
-      // تحديث القيم الرقمية
+      
       document.getElementById('healthValue').textContent = `${state.health}%`;
       document.getElementById('healthText').textContent = state.health > 70 ? 'جيدة' : (state.health > 40 ? 'مقلقة' : 'خطر');
       document.getElementById('humVal').textContent = `${state.hum}%`;
@@ -1164,14 +1125,14 @@
       document.getElementById('phVal').textContent = state.ph;
       document.getElementById('nutrVal').textContent = `${state.nutrients}%`;
       
-      // تحديث حالة الأجهزة
+      
       document.getElementById('podStatus').textContent = state.pod ? 'يدور (1g)' : 'متوقف';
       document.getElementById('tfStatus').textContent = state.thermalFlow ? 'نشط' : 'موقوف';
       
-      // تحديث الوقت
+      
       document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
       
-      // تحديث الرسوم البيانية
+      
       if (window.charts) {
         window.charts.gauge.data.datasets[0].data = [state.health, 100 - state.health];
         window.charts.gauge.update();
@@ -1186,7 +1147,7 @@
       }
     }
     
-    // إضافة سجل جديد
+    
     function addLog(message) {
       const logList = document.getElementById('logList');
       const logItem = document.createElement('div');
@@ -1202,7 +1163,6 @@
       
       logList.prepend(logItem);
       
-      // الاحتفاظ بعدد محدود من السجلات
       if (logList.children.length > 10) {
         logList.removeChild(logList.lastChild);
       }
@@ -1213,7 +1173,6 @@
       });
     }
     
-    // إضافة تنبيه جديد
     function addAlert(type, title, message) {
       const alertsArea = document.getElementById('alertsArea');
       const alert = document.createElement('div');
@@ -1240,29 +1199,24 @@
       
       alertsArea.prepend(alert);
       
-      // الاحتفاظ بعدد محدود من التنبيهات
       if (alertsArea.children.length > 5) {
         alertsArea.removeChild(alertsArea.lastChild);
       }
     }
     
-    // محاكاة تغيير البيانات
     function simulateDataChange() {
-      // تغيير عشوائي في القيم
       state.temp += (Math.random() - 0.5) * 0.5;
       state.hum += (Math.random() - 0.5) * 2;
       state.ph += (Math.random() - 0.5) * 0.1;
       state.nutrients -= Math.random() * 0.5;
       state.rootGrowth += Math.random() * 0.2;
       
-      // التأكد من أن القيم ضمن النطاق المقبول
       state.temp = Math.max(18, Math.min(30, state.temp));
       state.hum = Math.max(40, Math.min(90, state.hum));
       state.ph = Math.max(5.5, Math.min(7.5, state.ph));
       state.nutrients = Math.max(20, Math.min(100, state.nutrients));
       state.rootGrowth = Math.max(0, Math.min(50, state.rootGrowth));
       
-      // تحديث الصحة بناءً على القيم الأخرى
       const healthChange = (
         (state.nutrients > 70 ? 0.1 : -0.2) +
         (state.hum > 60 && state.hum < 80 ? 0.1 : -0.1) +
@@ -1272,13 +1226,10 @@
       
       state.health = Math.max(10, Math.min(100, state.health + healthChange));
       
-      // تحديث واجهة المستخدم
       updateUI();
       
-      // إضافة سجل
       addLog(`تحديث بيانات: حرارة ${state.temp.toFixed(1)}°C, رطوبة ${state.hum.toFixed(1)}%, مغذيات ${state.nutrients.toFixed(1)}%`);
       
-      // إضافة تنبيهات عشوائية في بعض الأحيان
       if (Math.random() < 0.1) {
         if (state.nutrients < 40) {
           addAlert('warning', 'انخفاض المغذيات', 'مستوى المغذيات منخفض. يوصى بإضافة محلول مغذيات.');
@@ -1289,7 +1240,6 @@
         }
       }
       
-      // تحديث مخطط درجة الحرارة والرطوبة
       if (window.charts && window.charts.tempHum) {
         const tempData = window.charts.tempHum.data.datasets[0].data;
         const humData = window.charts.tempHum.data.datasets[1].data;
@@ -1306,12 +1256,10 @@
       }
     }
     
-    // تشغيل/إيقاف المحاكاة
     function toggleSimulation() {
       const btn = document.getElementById('simulateBtn');
       
       if (state.simulationRunning) {
-        // إيقاف المحاكاة
         clearInterval(state.simulationInterval);
         state.simulationRunning = false;
         btn.innerHTML = '<i class="fas fa-play"></i> تشغيل المحاكاة';
@@ -1327,7 +1275,6 @@
       }
     }
     
-    // تشغيل نموذج التنبؤ
     function runPrediction() {
       const risk = 100 - state.health;
       let riskLevel = 'منخفض';
@@ -1349,7 +1296,6 @@
       document.getElementById('riskProgress').className = `progress-fill ${progressClass}`;
       document.getElementById('riskProgress').style.width = `${risk}%`;
       
-      // حساب تاريخ متوقع للمشكلة
       const daysToProblem = Math.max(1, Math.floor(100 / risk));
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + daysToProblem);
@@ -1357,7 +1303,6 @@
       document.getElementById('riskDate').textContent = futureDate.toLocaleDateString('ar-EG');
       document.getElementById('predDays').textContent = `${daysToProblem} أيام`;
       
-      // تحديث التوصيات
       if (risk > 60) {
         document.getElementById('quickRec').textContent = 'إجراء عاجل: زيادة المغذيات بنسبة 15% ومراجعة نظام الري فوراً.';
         document.getElementById('stepRec').textContent = '1) إيقاف النظام الحالي. 2) إضافة محلول مغذيات مركز. 3) فحص نظام الري. 4) المراقبة المستمرة كل ساعة.';
@@ -1377,19 +1322,16 @@
       addAlert('info', 'تحليل الذكاء الاصطناعي', 'تم تحديث التوقعات بناءً على البيانات الحالية.');
     }
     
-    // تهيئة التطبيق عند تحميل الصفحة
     document.addEventListener('DOMContentLoaded', function() {
-      // تهيئة المكونات
+
       init3DPlant();
       initCharts();
       updateUI();
       
-      // إضافة بعض البيانات الأولية
       addLog('تم تهيئة نظام BIO-SYNC بنجاح');
       addLog('جارٍ تحميل البيانات من قاعدة ناسا النباتية');
       addAlert('success', 'النظام جاهز', 'تم تحميل جميع الوحدات بنجاح. النظام جاهز للعمل.');
       
-      // إعداد معالجات الأحداث
       document.getElementById('simulateBtn').addEventListener('click', toggleSimulation);
       document.getElementById('predictBtn').addEventListener('click', runPrediction);
       document.getElementById('helpBtn').addEventListener('click', function() {
@@ -1401,7 +1343,6 @@
         addAlert('info', 'تحديث يدوي', 'تم تحديث البيانات يدوياً.');
       });
       
-      // تشغيل التنبؤ الأولي
       setTimeout(runPrediction, 1000);
     });
   </script>
