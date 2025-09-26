@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIO-SYNC — نظام الذكاء الاصطناعي لمراقبة النباتات</title>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg: #0a1420;
+      --bg-card: rgba(15, 23, 36, 0.8);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --bg-glass-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e6eef6;
+      --text-muted: #9aa7b2;
+      --accent: #39d353;
+      --accent-light: #5ce077;
+      --warn: #f1c40f;
+      --danger: #ff6b6b;
+      --info: #66d3ff;
+      --purple: #b695ff;
+      --gradient: linear-gradient(135deg, #071022 0%, #0a1420 100%);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      --radius: 16px;
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--gradient);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .logo {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(57, 211, 83, 0.3);
+    }
+    
+    .logo i {
+      font-size: 24px;
+      color: white;
+    }
+    
+    .brand-text h1 {
+      font-size: 1.8rem;
+      background: linear-gradient(to right, var(--accent), var(--info));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 4px;
+    }
+    
+    .brand-text p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 600;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn:hover {
+      background: var(--bg-glass-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    
+    .btn.active {
+      background: rgba(57, 211, 83, 0.1);
+      color: var(--accent);
+      border-color: rgba(57, 211, 83, 0.3);
+    }
+    
+    .btn i {
+      font-size: 14px;
+    }
+    
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 24px;
+    }
+    
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      transition: var(--transition);
+    }
+    
+    .card:hover {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card-title i {
+      color: var(--accent);
+    }
+    
+    /* Plant Card */
+    .plant-card {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .plant-card {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .plant-visual {
+      width: 100%;
+      height: 200px;
+      border-radius: 12px;
+      background: linear-gradient(160deg, #08212a, #071728);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    #plant3d {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    
+    .plant-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .plant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .plant-name h2 {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+    
+    .plant-location {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    
+    .health-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .health-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(57, 211, 83, 0.1);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    
+    .health-indicator::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    
+    .health-widget {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    
+    @media (max-width: 500px) {
+      .health-widget {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+    
+    .gauge-container {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+    
+    .gauge-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    
+    .health-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      flex: 1;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .stat {
+      background: var(--bg-glass);
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    
+    .stat-trend {
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .trend-up {
+      color: var(--accent);
+    }
+    
+    .trend-down {
+      color: var(--danger);
+    }
+    
+    /* Charts */
+    .charts-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    @media (max-width: 900px) {
+      .charts-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .chart-card {
+      min-height: 320px;
+    }
+    
+    .chart-container {
+      width: 100%;
+      height: 240px;
+    }
+    
+    /* Alerts */
+    .alert {
+      padding: 14px;
+      border-radius: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      border-left: 4px solid;
+      transition: var(--transition);
+    }
+    
+    .alert:hover {
+      transform: translateX(5px);
+    }
+    
+    .alert-info {
+      background: linear-gradient(90deg, rgba(102, 211, 255, 0.05), transparent);
+      border-left-color: var(--info);
+    }
+    
+    .alert-warning {
+      background: linear-gradient(90deg, rgba(241, 196, 15, 0.05), transparent);
+      border-left-color: var(--warn);
+    }
+    
+    .alert-danger {
+      background: linear-gradient(90deg, rgba(255, 107, 107, 0.05), transparent);
+      border-left-color: var(--danger);
+    }
+    
+    .alert-success {
+      background: linear-gradient(90deg, rgba(57, 211, 83, 0.05), transparent);
+      border-left-color: var(--accent);
+    }
+    
+    .alert-icon {
+      font-size: 18px;
+      margin-top: 2px;
+    }
+    
+    .alert-content {
+      flex: 1;
+    }
+    
+    .alert-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .alert-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    
+    .alert-time {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    
+    /* Timeline */
+    .timeline {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    
+    .timeline-item {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      transition: var(--transition);
+    }
+    
+    .timeline-item:hover {
+      background: var(--bg-glass-hover);
+    }
+    
+    .timeline-time {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      min-width: 70px;
+    }
+    
+    .timeline-content {
+      flex: 1;
+    }
+    
+    /* Predictive Model */
+    .prediction-card {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 20px;
+    }
+    
+    @media (max-width: 700px) {
+      .prediction-card {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .risk-indicator {
+      text-align: center;
+      padding: 20px;
+      border-radius: 12px;
+      background: var(--bg-glass);
+    }
+    
+    .risk-level {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+    
+    .risk-low {
+      color: var(--accent);
+    }
+    
+    .risk-medium {
+      color: var(--warn);
+    }
+    
+    .risk-high {
+      color: var(--danger);
+    }
+    
+    .progress-container {
+      margin: 15px 0;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+    
+    .progress-low {
+      background: var(--accent);
+    }
+    
+    .progress-medium {
+      background: var(--warn);
+    }
+    
+    .progress-high {
+      background: var(--danger);
+    }
+    
+    /* Recommendations */
+    .recommendation {
+      padding: 16px;
+      border-radius: 10px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    
+    .rec-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .rec-title i {
+      color: var(--accent);
+    }
+    
+    .rec-content {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    /* Footer */
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+    }
+    
+    /* Animations */
+    @keyframes pulse {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .slide-in {
+      animation: slideIn 0.5s ease;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Loading State */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+    }
+    
+    .loading i {
+      margin-right: 8px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <i class="fas fa-seedling"></i>
+        </div>
+        <div class="brand-text">
+          <h1>BIO-SYNC</h1>
+          <p>نظام الذكاء الاصطناعي لمراقبة النباتات - من البقاء إلى الازدهار</p>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <div class="btn" id="simulateBtn">
+          <i class="fas fa-play"></i> تشغيل المحاكاة
+        </div>
+        <div class="btn" id="predictBtn">
+          <i class="fas fa-brain"></i> نموذج التنبؤ
+        </div>
+        <div class="btn" id="helpBtn">
+          <i class="fas fa-question-circle"></i> المساعدة
+        </div>
+      </div>
+    </header>
+    
+    <main class="layout">
+      <!-- الجانب الأيسر -->
+      <section class="left-panel">
+        <!-- بطاقة النبات -->
+        <div class="card plant-card">
+          <div class="plant-visual">
+            <canvas id="plant3d"></canvas>
+            <div id="plantLoading" class="loading">
+              <i class="fas fa-spinner"></i> جاري تحميل النموذج ثلاثي الأبعاد...
+            </div>
+          </div>
+          
+          <div class="plant-meta">
+            <div class="plant-header">
+              <div class="plant-name">
+                <h2>نبات Arabidopsis #3</h2>
+                <div class="plant-location">
+                  <i class="fas fa-map-marker-alt"></i> ISS - Habitat A
+                </div>
+              </div>
+              
+              <div class="health-status">
+                <div class="health-indicator">
+                  <span>صحي</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="health-widget">
+              <div class="gauge-container">
+                <canvas id="gauge"></canvas>
+                <div class="gauge-value" id="healthValue">82%</div>
+              </div>
+              
+              <div class="health-info">
+                <div class="stat">
+                  <div class="stat-label">الحالة الحالية</div>
+                  <div class="stat-value" id="healthText">جيدة</div>
+                  <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 2.5% تحسن
+                  </div>
+                </div>
+                
+                <div class="stat">
+                  <div class="stat-label">خطر متوقع خلال</div>
+                  <div class="stat-value" id="predDays">7 أيام</div>
+                  <div class="stat-trend trend-down">
+                    <i class="fas fa-arrow-down"></i> انخفاض في المخاطر
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stats-grid">
+              <div class="stat">
+                <div class="stat-label">الرطوبة</div>
+                <div class="stat-value" id="humVal">62%</div>
+                <div class="stat-trend trend-up">
+                  <i class="fas fa-arrow-up"></i> 1.2%
+                </div>
+              </div>
+              
+              <div class="stat">
+                <div class="stat-label">درجة الحرارة</div>
+                <div class="stat-value" id="tempVal">22.6°C</div>
+                <div class="stat-trend trend-down">
+                  <i class="fas fa-arrow-down"></i> 0.3°C
+                </div>
+              </div>
+              
+              <div class="stat">
+                <div class="stat-label">مستوى الحموضة</div>
+                <div class="stat-value" id="phVal">6.2</div>
+                <div class="stat-trend">
+                  <i class="fas fa-minus"></i> مستقر
+                </div>
+              </div>
+              
+              <div class="stat">
+                <div class="stat-label">المغذيات</div>
+                <div class="stat-value" id="nutrVal">78%</div>
+                <div class="stat-trend trend-down">
+                  <i class="fas fa-arrow-down"></i> 2.1%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- لوحة التحكم -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-sliders-h"></i> لوحة تحكم الأجهزة
+            </h3>
+            <div class="btn" id="refreshBtn">
+              <i class="fas fa-sync-alt"></i> تحديث
+            </div>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="stat-label">Gravity Pod</div>
+              <div class="stat-value" id="podStatus">متوقف</div>
+              <div class="stat-trend">
+                <i class="fas fa-circle" style="color: var(--danger)"></i> غير نشط
+              </div>
+            </div>
+            
+            <div class="stat">
+              <div class="stat-label">Thermal Flow</div>
+              <div class="stat-value" id="tfStatus">نشط</div>
+              <div class="stat-trend">
+                <i class="fas fa-circle" style="color: var(--accent)"></i> يعمل بشكل طبيعي
+              </div>
+            </div>
+            
+            <div class="stat">
+              <div class="stat-label">نظام الإضاءة</div>
+              <div class="stat-value" id="ledStatus">أحمر+أزرق</div>
+              <div class="stat-trend">
+                <i class="fas fa-circle" style="color: var(--accent)"></i> مثالي للنمو
+              </div>
+            </div>
+            
+            <div class="stat">
+              <div class="stat-label">نظام التهوية</div>
+              <div class="stat-value" id="ventStatus">1.2 m³/min</div>
+              <div class="stat-trend">
+                <i class="fas fa-circle" style="color: var(--accent)"></i> ضمن النطاق الأمثل
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- سجل الأحداث -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-history"></i> سجل الأحداث
+            </h3>
+            <div class="btn" id="filterBtn">
+              <i class="fas fa-filter"></i> تصفية
+            </div>
+          </div>
+          
+          <div class="timeline" id="logList">
+            <!-- سيتم ملؤه ديناميكيًا -->
+          </div>
+        </div>
+      </section>
+      
+      <!-- الجانب الأيمن -->
+      <section class="right-panel">
+        <!-- الرسوم البيانية -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-chart-line"></i> تحليل البيانات الحيوية
+            </h3>
+            <div class="btn" id="expandChartBtn">
+              <i class="fas fa-expand"></i> تكبير
+            </div>
+          </div>
+          
+          <div class="charts-container">
+            <div>
+              <h4>درجة الحرارة والرطوبة (آخر 48 ساعة)</h4>
+              <div class="chart-container">
+                <canvas id="tempHumChart"></canvas>
+              </div>
+            </div>
+            <div>
+              <h4>المغذيات (N-P-K) ونمو الجذور</h4>
+              <div class="chart-container">
+                <canvas id="nutrChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- التنبؤ الاستباقي -->
+        <div class="card prediction-card">
+          <div class="risk-indicator">
+            <div class="stat-label">مستوى الخطر المتوقع</div>
+            <div class="risk-level risk-low" id="riskLabel">منخفض</div>
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill progress-low" id="riskProgress" style="width: 20%"></div>
+              </div>
+            </div>
+            <div class="stat-label">التاريخ المتوقع: <span id="riskDate">15/06/2023</span></div>
+          </div>
+          
+          <div class="prediction-details">
+            <h3 class="card-title">
+              <i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي
+            </h3>
+            <div id="aiExplain" class="rec-content">
+              نموذج الذكاء الاصطناعي يحلل البيانات الحيوية ويتوقع المخاطر المستقبلية بناءً على الأنماط التاريخية.
+            </div>
+            
+            <div class="recommendation slide-in">
+              <div class="rec-title">
+                <i class="fas fa-lightbulb"></i> التوصية الفورية
+              </div>
+              <div class="rec-content" id="quickRec">
+                زيادة محلول المغذيات بنسبة 5%، ومراجعة مستوى الحموضة لضمان الامتصاص الأمثل.
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- التنبيهات والتوصيات -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-bell"></i> التنبيهات والتوصيات
+            </h3>
+            <div class="btn" id="settingsBtn">
+              <i class="fas fa-cog"></i> إعدادات
+            </div>
+          </div>
+          
+          <div id="alertsArea">
+            <!-- سيتم ملؤه ديناميكيًا -->
+          </div>
+          
+          <div class="recommendation">
+            <div class="rec-title">
+              <i class="fas fa-list-ol"></i> خطة العمل التفصيلية
+            </div>
+            <div class="rec-content" id="stepRec">
+              1) فحص نظام الري والتحقق من الضغط.<br>
+              2) معايرة أجهزة الاستشعار كل 24 ساعة.<br>
+              3) تسجيل القراءات في قاعدة البيانات.<br>
+              4) تشغيل نموذج التنبؤ بعد كل تحديث.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>نظام BIO-SYNC - النسخة الاحترافية | تم التطوير باستخدام أحدث تقنيات الذكاء الاصطناعي وتحليل البيانات</p>
+      <p>آخر تحديث: <span id="lastUpdate">--/--/---- --:--</span></p>
+    </footer>
+  </div>
+
+  <script>
+    // حالة التطبيق
+    const state = {
+      timeIndex: 0,
+      health: 82,
+      temp: 22.6,
+      hum: 62,
+      ph: 6.2,
+      nutrients: 78,
+      rootGrowth: 12,
+      logs: [],
+      pod: false,
+      thermalFlow: true,
+      simulationRunning: false,
+      simulationInterval: null
+    };
+
+    // تهيئة Three.js للنموذج ثلاثي الأبعاد
+    function init3DPlant() {
+      const canvas = document.getElementById('plant3d');
+      const loadingElement = document.getElementById('plantLoading');
+      
+      try {
+        // إنشاء المشهد
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x08212a);
+        
+        // إنشاء الكاميرا
+        const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        camera.position.set(0, 1.5, 3);
+        
+        // إنشاء العارض
+        const renderer = new THREE.WebGLRenderer({ 
+          canvas: canvas,
+          antialias: true,
+          alpha: true
+        });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        // إضافة الإضاءة
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7);
+        scene.add(directionalLight);
+        
+        // إنشاء النبتة
+        const plantGroup = new THREE.Group();
+        scene.add(plantGroup);
+        
+        // التربة
+        const soilGeometry = new THREE.CylinderGeometry(0.8, 1, 0.3, 32);
+        const soilMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+        const soil = new THREE.Mesh(soilGeometry, soilMaterial);
+        soil.position.y = -0.15;
+        plantGroup.add(soil);
+        
+        // الساق
+        const stemGeometry = new THREE.CylinderGeometry(0.05, 0.07, 1.2, 8);
+        const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x2E8B57 });
+        const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+        stem.position.y = 0.5;
+        plantGroup.add(stem);
+        
+        // الأوراق
+        const leafGeometry = new THREE.SphereGeometry(0.3, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+        const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x32CD32 });
+        
+        // إنشاء عدة أوراق
+        for (let i = 0; i < 6; i++) {
+          const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+          const angle = (i / 6) * Math.PI * 2;
+          const radius = 0.3;
+          const height = 0.7 + Math.random() * 0.3;
+          
+          leaf.position.set(
+            Math.cos(angle) * radius,
+            height,
+            Math.sin(angle) * radius
+          );
+          
+          leaf.scale.set(1.2, 0.6, 0.8);
+          leaf.rotation.x = Math.PI / 4;
+          leaf.rotation.y = angle;
+          
+          plantGroup.add(leaf);
+        }
+        
+        // الزهرة
+        const flowerGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+        const flowerMaterial = new THREE.MeshLambertMaterial({ color: 0xFF69B4 });
+        const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+        flower.position.y = 1.2;
+        plantGroup.add(flower);
+        
+        // إضافة OrbitControls للتحكم بالكاميرا
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 1.5;
+        controls.maxDistance = 5;
+        
+        // إخفاء مؤشر التحميل
+        loadingElement.style.display = 'none';
+        
+        // دورة التصيير
+        function animate() {
+          requestAnimationFrame(animate);
+          
+          // حركة بسيطة للنبات (تنفس)
+          plantGroup.rotation.y += 0.002;
+          stem.scale.y = 1 + Math.sin(Date.now() * 0.002) * 0.05;
+          
+          controls.update();
+          renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // التعامل مع تغيير حجم النافذة
+        window.addEventListener('resize', function() {
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        });
+        
+      } catch (error) {
+        console.error('Error initializing 3D plant:', error);
+        loadingElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> فشل في تحميل النموذج ثلاثي الأبعاد';
+      }
+    }
+
+    // تهيئة الرسوم البيانية
+    function initCharts() {
+      // مخطط الصحة (مقياس دائري)
+      const gaugeCtx = document.getElementById('gauge').getContext('2d');
+      const gaugeChart = new Chart(gaugeCtx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [state.health, 100 - state.health],
+            backgroundColor: ['#39d353', 'rgba(255, 255, 255, 0.1)'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          cutout: '70%',
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              enabled: false
+            }
+          }
+        }
+      });
+      
+      // مخطط درجة الحرارة والرطوبة
+      const tempHumCtx = document.getElementById('tempHumChart').getContext('2d');
+      const tempHumChart = new Chart(tempHumCtx, {
+        type: 'line',
+        data: {
+          labels: Array.from({length: 24}, (_, i) => `${i*2}س`),
+          datasets: [
+            {
+              label: 'درجة الحرارة (°C)',
+              data: generateData(24, state.temp, 2),
+              borderColor: '#ff7ab6',
+              backgroundColor: 'rgba(255, 122, 182, 0.1)',
+              tension: 0.4,
+              yAxisID: 'y'
+            },
+            {
+              label: 'الرطوبة (%)',
+              data: generateData(24, state.hum, 5),
+              borderColor: '#66d3ff',
+              backgroundColor: 'rgba(102, 211, 255, 0.1)',
+              tension: 0.4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: {
+                display: true,
+                text: 'درجة الحرارة (°C)'
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: 'الرطوبة (%)'
+              },
+              grid: {
+                drawOnChartArea: false
+              }
+            }
+          }
+        }
+      });
+      
+      // مخطط المغذيات
+      const nutrCtx = document.getElementById('nutrChart').getContext('2d');
+      const nutrChart = new Chart(nutrCtx, {
+        type: 'bar',
+        data: {
+          labels: ['نيتروجين', 'فوسفور', 'بوتاسيوم', 'نمو الجذور (مم)'],
+          datasets: [{
+            label: 'المستوى',
+            data: [state.nutrients - 10, state.nutrients - 15, state.nutrients, state.rootGrowth],
+            backgroundColor: ['#ffd166', '#06d6a0', '#4cc9f0', '#b695ff'],
+            borderRadius: 5
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              max: 100
+            }
+          }
+        }
+      });
+      
+      // حفظ المراجع للتحديث لاحقاً
+      window.charts = {
+        gauge: gaugeChart,
+        tempHum: tempHumChart,
+        nutr: nutrChart
+      };
+    }
+    
+    // وظيفة مساعدة لتوليد بيانات عشوائية
+    function generateData(count, base, variance) {
+      return Array.from({length: count}, () => {
+        return base + (Math.random() - 0.5) * variance * 2;
+      });
+    }
+    
+    // تحديث واجهة المستخدم
+    function updateUI() {
+      // تحديث القيم الرقمية
+      document.getElementById('healthValue').textContent = `${state.health}%`;
+      document.getElementById('healthText').textContent = state.health > 70 ? 'جيدة' : (state.health > 40 ? 'مقلقة' : 'خطر');
+      document.getElementById('humVal').textContent = `${state.hum}%`;
+      document.getElementById('tempVal').textContent = `${state.temp}°C`;
+      document.getElementById('phVal').textContent = state.ph;
+      document.getElementById('nutrVal').textContent = `${state.nutrients}%`;
+      
+      // تحديث حالة الأجهزة
+      document.getElementById('podStatus').textContent = state.pod ? 'يدور (1g)' : 'متوقف';
+      document.getElementById('tfStatus').textContent = state.thermalFlow ? 'نشط' : 'موقوف';
+      
+      // تحديث الوقت
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+      
+      // تحديث الرسوم البيانية
+      if (window.charts) {
+        window.charts.gauge.data.datasets[0].data = [state.health, 100 - state.health];
+        window.charts.gauge.update();
+        
+        window.charts.nutr.data.datasets[0].data = [
+          state.nutrients - 10, 
+          state.nutrients - 15, 
+          state.nutrients, 
+          state.rootGrowth
+        ];
+        window.charts.nutr.update();
+      }
+    }
+    
+    // إضافة سجل جديد
+    function addLog(message) {
+      const logList = document.getElementById('logList');
+      const logItem = document.createElement('div');
+      logItem.className = 'timeline-item';
+      
+      const now = new Date();
+      const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      logItem.innerHTML = `
+        <div class="timeline-time">${timeString}</div>
+        <div class="timeline-content">${message}</div>
+      `;
+      
+      logList.prepend(logItem);
+      
+      // الاحتفاظ بعدد محدود من السجلات
+      if (logList.children.length > 10) {
+        logList.removeChild(logList.lastChild);
+      }
+      
+      state.logs.unshift({
+        time: now,
+        message: message
+      });
+    }
+    
+    // إضافة تنبيه جديد
+    function addAlert(type, title, message) {
+      const alertsArea = document.getElementById('alertsArea');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      
+      let icon = 'info-circle';
+      if (type === 'warning') icon = 'exclamation-triangle';
+      if (type === 'danger') icon = 'exclamation-circle';
+      if (type === 'success') icon = 'check-circle';
+      
+      const now = new Date();
+      const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      alert.innerHTML = `
+        <div class="alert-icon">
+          <i class="fas fa-${icon}"></i>
+        </div>
+        <div class="alert-content">
+          <div class="alert-title">${title}</div>
+          <div class="alert-desc">${message}</div>
+        </div>
+        <div class="alert-time">${timeString}</div>
+      `;
+      
+      alertsArea.prepend(alert);
+      
+      // الاحتفاظ بعدد محدود من التنبيهات
+      if (alertsArea.children.length > 5) {
+        alertsArea.removeChild(alertsArea.lastChild);
+      }
+    }
+    
+    // محاكاة تغيير البيانات
+    function simulateDataChange() {
+      // تغيير عشوائي في القيم
+      state.temp += (Math.random() - 0.5) * 0.5;
+      state.hum += (Math.random() - 0.5) * 2;
+      state.ph += (Math.random() - 0.5) * 0.1;
+      state.nutrients -= Math.random() * 0.5;
+      state.rootGrowth += Math.random() * 0.2;
+      
+      // التأكد من أن القيم ضمن النطاق المقبول
+      state.temp = Math.max(18, Math.min(30, state.temp));
+      state.hum = Math.max(40, Math.min(90, state.hum));
+      state.ph = Math.max(5.5, Math.min(7.5, state.ph));
+      state.nutrients = Math.max(20, Math.min(100, state.nutrients));
+      state.rootGrowth = Math.max(0, Math.min(50, state.rootGrowth));
+      
+      // تحديث الصحة بناءً على القيم الأخرى
+      const healthChange = (
+        (state.nutrients > 70 ? 0.1 : -0.2) +
+        (state.hum > 60 && state.hum < 80 ? 0.1 : -0.1) +
+        (state.temp > 20 && state.temp < 25 ? 0.1 : -0.1) +
+        (Math.random() - 0.5) * 0.3
+      );
+      
+      state.health = Math.max(10, Math.min(100, state.health + healthChange));
+      
+      // تحديث واجهة المستخدم
+      updateUI();
+      
+      // إضافة سجل
+      addLog(`تحديث بيانات: حرارة ${state.temp.toFixed(1)}°C, رطوبة ${state.hum.toFixed(1)}%, مغذيات ${state.nutrients.toFixed(1)}%`);
+      
+      // إضافة تنبيهات عشوائية في بعض الأحيان
+      if (Math.random() < 0.1) {
+        if (state.nutrients < 40) {
+          addAlert('warning', 'انخفاض المغذيات', 'مستوى المغذيات منخفض. يوصى بإضافة محلول مغذيات.');
+        } else if (state.hum < 50) {
+          addAlert('warning', 'انخفاض الرطوبة', 'الرطوبة منخفضة. يوصى بزيادة الري.');
+        } else if (state.health > 80) {
+          addAlert('success', 'صحة ممتازة', 'النبات في حالة صحية ممتازة. استمر في الرعاية الحالية.');
+        }
+      }
+      
+      // تحديث مخطط درجة الحرارة والرطوبة
+      if (window.charts && window.charts.tempHum) {
+        const tempData = window.charts.tempHum.data.datasets[0].data;
+        const humData = window.charts.tempHum.data.datasets[1].data;
+        
+        tempData.push(state.temp);
+        humData.push(state.hum);
+        
+        if (tempData.length > 24) {
+          tempData.shift();
+          humData.shift();
+        }
+        
+        window.charts.tempHum.update();
+      }
+    }
+    
+    // تشغيل/إيقاف المحاكاة
+    function toggleSimulation() {
+      const btn = document.getElementById('simulateBtn');
+      
+      if (state.simulationRunning) {
+        // إيقاف المحاكاة
+        clearInterval(state.simulationInterval);
+        state.simulationRunning = false;
+        btn.innerHTML = '<i class="fas fa-play"></i> تشغيل المحاكاة';
+        btn.classList.remove('active');
+        addLog('تم إيقاف المحاكاة');
+      } else {
+        // تشغيل المحاكاة
+        state.simulationInterval = setInterval(simulateDataChange, 3000);
+        state.simulationRunning = true;
+        btn.innerHTML = '<i class="fas fa-pause"></i> إيقاف المحاكاة';
+        btn.classList.add('active');
+        addLog('تم تشغيل المحاكاة');
+      }
+    }
+    
+    // تشغيل نموذج التنبؤ
+    function runPrediction() {
+      const risk = 100 - state.health;
+      let riskLevel = 'منخفض';
+      let riskColor = 'risk-low';
+      let progressClass = 'progress-low';
+      
+      if (risk > 60) {
+        riskLevel = 'مرتفع';
+        riskColor = 'risk-high';
+        progressClass = 'progress-high';
+      } else if (risk > 30) {
+        riskLevel = 'متوسط';
+        riskColor = 'risk-medium';
+        progressClass = 'progress-medium';
+      }
+      
+      document.getElementById('riskLabel').textContent = riskLevel;
+      document.getElementById('riskLabel').className = `risk-level ${riskColor}`;
+      document.getElementById('riskProgress').className = `progress-fill ${progressClass}`;
+      document.getElementById('riskProgress').style.width = `${risk}%`;
+      
+      // حساب تاريخ متوقع للمشكلة
+      const daysToProblem = Math.max(1, Math.floor(100 / risk));
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + daysToProblem);
+      
+      document.getElementById('riskDate').textContent = futureDate.toLocaleDateString('ar-EG');
+      document.getElementById('predDays').textContent = `${daysToProblem} أيام`;
+      
+      // تحديث التوصيات
+      if (risk > 60) {
+        document.getElementById('quickRec').textContent = 'إجراء عاجل: زيادة المغذيات بنسبة 15% ومراجعة نظام الري فوراً.';
+        document.getElementById('stepRec').textContent = '1) إيقاف النظام الحالي. 2) إضافة محلول مغذيات مركز. 3) فحص نظام الري. 4) المراقبة المستمرة كل ساعة.';
+      } else if (risk > 30) {
+        document.getElementById('quickRec').textContent = 'زيادة محلول المغذيات بنسبة 8%، ومراجعة مستوى الحموضة.';
+        document.getElementById('stepRec').textContent = '1) إضافة 8% محلول مغذيات. 2) مراجعة pH. 3) مراقبة التغيرات خلال 12 ساعة. 4) تكرار الإجراء إذا لزم الأمر.';
+      } else {
+        document.getElementById('quickRec').textContent = 'لا حاجة لتغييرات كبيرة. الاستمرار في الرعاية الروتينية.';
+        document.getElementById('stepRec').textContent = '1) المراقبة اليومية. 2) التسجيل المنتظم للبيانات. 3) تشغيل نموذج التنبؤ أسبوعياً.';
+      }
+      
+      document.getElementById('aiExplain').textContent = 
+        `نموذج الذكاء الاصطناعي يتوقع مستوى خطر ${riskLevel} (${risk}%) بناءً على البيانات الحالية. ` +
+        `الخطر المتوقع خلال ${daysToProblem} أيام إذا استمرت الاتجاهات الحالية.`;
+      
+      addLog('تم تشغيل نموذج التنبؤ');
+      addAlert('info', 'تحليل الذكاء الاصطناعي', 'تم تحديث التوقعات بناءً على البيانات الحالية.');
+    }
+    
+    // تهيئة التطبيق عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+      // تهيئة المكونات
+      init3DPlant();
+      initCharts();
+      updateUI();
+      
+      // إضافة بعض البيانات الأولية
+      addLog('تم تهيئة نظام BIO-SYNC بنجاح');
+      addLog('جارٍ تحميل البيانات من قاعدة ناسا النباتية');
+      addAlert('success', 'النظام جاهز', 'تم تحميل جميع الوحدات بنجاح. النظام جاهز للعمل.');
+      
+      // إعداد معالجات الأحداث
+      document.getElementById('simulateBtn').addEventListener('click', toggleSimulation);
+      document.getElementById('predictBtn').addEventListener('click', runPrediction);
+      document.getElementById('helpBtn').addEventListener('click', function() {
+        alert('دليل الاستخدام:\n\n1) استخدم زر "تشغيل المحاكاة" لبدء محاكاة البيانات الحيوية.\n2) استخدم زر "نموذج التنبؤ" لتشغيل تحليل الذكاء الاصطناعي.\n3) تتبع التنبيهات والتوصيات في اللوحة اليمنى.\n4) استخدم زر التحديث لتحديث البيانات يدوياً.');
+      });
+      
+      document.getElementById('refreshBtn').addEventListener('click', function() {
+        simulateDataChange();
+        addAlert('info', 'تحديث يدوي', 'تم تحديث البيانات يدوياً.');
+      });
+      
+      // تشغيل التنبؤ الأولي
+      setTimeout(runPrediction, 1000);
+    });
+  </script>
+</body>
+</html>
